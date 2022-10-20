@@ -122,18 +122,88 @@ Step 9: Select the hex file from the Kiel program folder and import the program 
 
 
 ## Kiel - Program  
+```
+#include<lpc214x.h>
+#include<stdint.h>
+#include<stdio.h>
+#include<stdlib.h>
 
+void delay_ms(uint16_t j) // Fuction for delay in milliseconds
+{
+		uint16_t x,i;
+		for(i=0;i<j;i++)
+		{
+			for(x=0; x<6000; x++);   // loop to generate 1 millisecond delay with Clk = 60MHz
+		}
+}
 
+void LCD_CMD(char command)
+{
+		IO0PIN = ( (IO0PIN & 0xFFFF00FF) | (command<<8) );
+		IO0SET = 0x00000040; // EN = 1
+		IO0CLR = 0x00000030; // RS = 0,RW = 0
+		delay_ms(2);
+		IO0CLR = 0x00000040;
+		delay_ms(5);
+}
 
+void LCD_INIT(void)
+{
+		IO0DIR = 0x0000FFF0;  // P0.8 TO P0.15 LCD Data. P0.4,5,6 AS RS RW and EN
+		delay_ms(20);
+		LCD_CMD(0x38);   // Initialize lcd
+		LCD_CMD(0x0C);   //Display on cursor off
+		LCD_CMD(0x06);   // Auto increment cursor
+		LCD_CMD(0x01);   // Display clear
+		LCD_CMD(0x80);   // First line first position
+}
+
+void LCD_STRING (char* msg)
+{
+
+		uint8_t i=0;
+		while(msg[i]!=0)
+		{
+			IO0PIN = ( (IO0PIN & 0xFFFF00FF) | (msg[i]<<8) );
+			IO0SET = 0x00000050; // RS = 1, , EN = 1
+			IO0CLR = 0x00000020; // RW = 0
+			delay_ms(2);
+			IO0CLR = 0x00000040;  // EN =0, RS and RW unchanged (i.e. RS =1, RW =0)
+			delay_ms(5);
+			i++;
+		}
+}
+
+void LCD_CHAR (char msg)
+{
+		IO0PIN = ( (IO0PIN & 0xFFFF00FF) | (msg<<8) );
+		IO0SET = 0x00000050; // RS = 1, , EN = 1
+		IO0CLR = 0x00000020; // RW = 0
+		delay_ms(2);
+		IO0CLR = 0x00000040;  // EN =0, RS and RW unchanged (i.e. RS =1, RW =0)
+		delay_ms(5);
+}
+int main(void)
+{
+		LCD_INIT();
+		LCD_STRING("Welcome to AIML");
+		LCD_CMD(0xC0);
+		LCD_STRING("212221240002");
+		return 0;
+}
+
+```
 
 
 ## Proteus simulation 
+## Display OFF:
 
+![WhatsApp Image 2022-10-20 at 8 27 14 AM](https://user-images.githubusercontent.com/94219798/196847063-c208e65a-8225-4c89-bfbf-e40adec2db96.jpeg)
+## Display ON:
+![WhatsApp Image 2022-10-20 at 8 27 13 AM](https://user-images.githubusercontent.com/94219798/196847148-71c1f518-8e90-458c-84c2-2a3e0b264590.jpeg)
 
-
-
-##  layout Diagram 
-
+## LAYOUT DIAGRAM:
+![WhatsApp Image 2022-10-20 at 8 27 15 AM](https://user-images.githubusercontent.com/94219798/196847233-94043e30-041b-45df-aa15-de265c2af85b.jpeg)
 
 
 ## Result :
